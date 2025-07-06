@@ -147,7 +147,7 @@ function drawGameOver() {
     ctx.textAlign = 'center';
     ctx.fillText('GAME OVER', canvas.width / 2, canvas.height / 2 - 20);
     ctx.font = '20px Arial';
-    ctx.fillText('Press Space to Restart', canvas.width / 2, canvas.height / 2 + 20);
+    ctx.fillText('Press Space or Tap to Restart', canvas.width / 2, canvas.height / 2 + 20);
 }
 
 // キーボードイベント
@@ -161,6 +161,17 @@ document.addEventListener('keydown', function(event) {
     }
 });
 
+// タッチイベント
+canvas.addEventListener('touchstart', function(event) {
+    event.preventDefault(); // タッチによる画面スクロールなどを防ぐ
+    if (!gameRunning) {
+        initGame();
+    } else {
+        player.jump();
+    }
+});
+
+
 // ゲーム開始時の表示
 function drawStartScreen() {
     ctx.fillStyle = 'black';
@@ -168,7 +179,7 @@ function drawStartScreen() {
     ctx.textAlign = 'center';
     ctx.fillText('避けるゲーム', canvas.width / 2, canvas.height / 2 - 20);
     ctx.font = '20px Arial';
-    ctx.fillText('Press Space to Start', canvas.width / 2, canvas.height / 2 + 20);
+    ctx.fillText('Press Space or Tap to Start', canvas.width / 2, canvas.height / 2 + 20);
 }
 
 drawStartScreen();
