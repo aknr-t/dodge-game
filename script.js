@@ -13,19 +13,14 @@ let highScore = 0;
 const player = {
     x: 50,
     y: canvas.height - 60,
-    width: 30,
-    height: 30,
+    width: 50, // 画像のサイズに合わせて調整
+    height: 50, // 画像のサイズに合わせて調整
     velocityY: 0,
     gravity: 0.6,
     isJumping: false,
+    image: new Image(),
     draw: function() {
-        ctx.fillStyle = 'blue';
-        ctx.beginPath();
-        ctx.moveTo(this.x, this.y + this.height);
-        ctx.lineTo(this.x + this.width / 2, this.y);
-        ctx.lineTo(this.x + this.width, this.y + this.height);
-        ctx.closePath();
-        ctx.fill();
+        ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
     },
     jump: function() {
         if (!this.isJumping) {
@@ -44,6 +39,8 @@ const player = {
         }
     }
 };
+
+player.image.src = 'creeper.png';
 
 // 障害物
 let obstacles = [];
