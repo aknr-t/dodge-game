@@ -1,8 +1,31 @@
 const canvas = document.getElementById('gameCanvas');
 const ctx = canvas.getContext('2d');
 
-canvas.width = 800;
-canvas.height = 400;
+let gameOver = false;
+
+function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+
+    // プレイヤーのY座標を再計算
+    if (player.y + player.height > canvas.height) {
+        player.y = canvas.height - player.height;
+    }
+
+    // 障害物のY座標を再計算
+    obstacles.forEach(o => {
+        o.y = canvas.height - o.height;
+    });
+
+    // ゲームの状態に応じて画面を再描画
+    if (!gameRunning) {
+        if (gameOver) {
+            drawGameOver();
+        } else {
+            drawStartScreen();
+        }
+    }
+}
 
 // ゲームの状態
 let gameRunning = false;
@@ -76,6 +99,7 @@ function checkCollision(player, obstacle) {
 // ゲームの初期化
 function initGame() {
     gameRunning = true;
+    gameOver = false;
     score = 0;
     obstacles = [];
     player.y = canvas.height - player.height;
@@ -111,6 +135,7 @@ function gameLoop(currentTime) {
 
         if (checkCollision(player, obstacle)) {
             gameRunning = false;
+            gameOver = true;
             if (score > highScore) {
                 highScore = score;
             }
@@ -182,4 +207,8 @@ function drawStartScreen() {
     ctx.fillText('Press Space or Tap to Start', canvas.width / 2, canvas.height / 2 + 20);
 }
 
+window.addEventListener('resize', resizeCanvas);
+
+// 初期化
+resizeCanvas();
 drawStartScreen();
