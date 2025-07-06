@@ -7,17 +7,14 @@ function resizeCanvas() {
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
 
-    // プレイヤーのY座標を再計算
     if (player.y + player.height > canvas.height) {
         player.y = canvas.height - player.height;
     }
 
-    // 障害物のY座標を再計算
     obstacles.forEach(o => {
         o.y = canvas.height - o.height;
     });
 
-    // ゲームの状態に応じて画面を再描画
     if (!gameRunning) {
         if (gameOver) {
             drawGameOver();
@@ -27,28 +24,27 @@ function resizeCanvas() {
     }
 }
 
-// ゲームの状態
 let gameRunning = false;
 let score = 0;
 let highScore = 0;
 
-// プレイヤー
 const player = {
     x: 50,
     y: canvas.height - 60,
-    width: 50, // 画像のサイズに合わせて調整
-    height: 50, // 画像のサイズに合わせて調整
+    width: 50,
+    height: 50,
     velocityY: 0,
     gravity: 0.6,
-    isJumping: false,
+    jumps: 0,
+    maxJumps: 2,
     image: new Image(),
     draw: function() {
         ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
     },
     jump: function() {
-        if (!this.isJumping) {
+        if (this.jumps < this.maxJumps) {
             this.velocityY = -12;
-            this.isJumping = true;
+            this.jumps++;
         }
     },
     update: function() {
@@ -58,27 +54,36 @@ const player = {
         if (this.y + this.height > canvas.height) {
             this.y = canvas.height - this.height;
             this.velocityY = 0;
-            this.isJumping = false;
+            this.jumps = 0;
         }
     }
 };
 
 player.image.src = 'creeper.png';
 
-// 障害物
 let obstacles = [];
 
 function createObstacle() {
     const obstacleWidth = 20 + Math.random() * 30;
-    const obstacleHeight = 20 + Math.random() * 50;
+    let obstacleHeight;
+    let obstacleColor = 'red';
+
+    if (Math.random() < 0.25 && score > 5) {
+        obstacleHeight = 80 + Math.random() * 40;
+        obstacleColor = 'purple';
+    } else {
+        obstacleHeight = 20 + Math.random() * 50;
+    }
+
     const obstacle = {
         x: canvas.width,
         y: canvas.height - obstacleHeight,
         width: obstacleWidth,
         height: obstacleHeight,
-        speed: 7 + score * 0.05, // スコアに応じて速度アップ
+        color: obstacleColor,
+        speed: 7 + score * 0.05,
         draw: function() {
-            ctx.fillStyle = 'red';
+            ctx.fillStyle = this.color;
             ctx.fillRect(this.x, this.y, this.width, this.height);
         },
         update: function() {
@@ -88,7 +93,6 @@ function createObstacle() {
     obstacles.push(obstacle);
 }
 
-// 衝突判定
 function checkCollision(player, obstacle) {
     return player.x < obstacle.x + obstacle.width &&
            player.x + player.width > obstacle.x &&
@@ -96,7 +100,6 @@ function checkCollision(player, obstacle) {
            player.y + player.height > obstacle.y;
 }
 
-// ゲームの初期化
 function initGame() {
     gameRunning = true;
     gameOver = false;
@@ -104,30 +107,26 @@ function initGame() {
     obstacles = [];
     player.y = canvas.height - player.height;
     player.velocityY = 0;
-    player.isJumping = false;
+    player.jumps = 0;
     gameLoop();
 }
 
-// ゲームループ
 let lastObstacleTime = 0;
-const obstacleInterval = 1500; // 障害物生成間隔 (ms)
+const obstacleInterval = 1500;
 
 function gameLoop(currentTime) {
     if (!gameRunning) return;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    // プレイヤーの更新と描画
     player.update();
     player.draw();
 
-    // 障害物の生成
     if (currentTime - lastObstacleTime > obstacleInterval) {
         createObstacle();
         lastObstacleTime = currentTime;
     }
 
-    // 障害物の更新と描画、衝突判定
     for (let i = 0; i < obstacles.length; i++) {
         const obstacle = obstacles[i];
         obstacle.update();
@@ -143,7 +142,6 @@ function gameLoop(currentTime) {
             return;
         }
 
-        // 画面外に出た障害物を削除
         if (obstacle.x + obstacle.width < 0) {
             obstacles.splice(i, 1);
             i--;
@@ -151,21 +149,19 @@ function gameLoop(currentTime) {
         }
     }
 
-    // スコアの表示
     drawScore();
 
     requestAnimationFrame(gameLoop);
 }
 
-// スコア表示
 function drawScore() {
     ctx.fillStyle = 'black';
     ctx.font = '20px Arial';
+    ctx.textAlign = 'left';
     ctx.fillText('Score: ' + score, 10, 25);
     ctx.fillText('High Score: ' + highScore, 10, 50);
 }
 
-// ゲームオーバー表示
 function drawGameOver() {
     ctx.fillStyle = 'black';
     ctx.font = '40px Arial';
@@ -175,7 +171,6 @@ function drawGameOver() {
     ctx.fillText('Press Space or Tap to Restart', canvas.width / 2, canvas.height / 2 + 20);
 }
 
-// キーボードイベント
 document.addEventListener('keydown', function(event) {
     if (event.code === 'Space') {
         if (!gameRunning) {
@@ -186,9 +181,8 @@ document.addEventListener('keydown', function(event) {
     }
 });
 
-// タッチイベント
 canvas.addEventListener('touchstart', function(event) {
-    event.preventDefault(); // タッチによる画面スクロールなどを防ぐ
+    event.preventDefault();
     if (!gameRunning) {
         initGame();
     } else {
@@ -196,8 +190,6 @@ canvas.addEventListener('touchstart', function(event) {
     }
 });
 
-
-// ゲーム開始時の表示
 function drawStartScreen() {
     ctx.fillStyle = 'black';
     ctx.font = '40px Arial';
@@ -209,6 +201,5 @@ function drawStartScreen() {
 
 window.addEventListener('resize', resizeCanvas);
 
-// 初期化
 resizeCanvas();
 drawStartScreen();
