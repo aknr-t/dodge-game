@@ -53,7 +53,7 @@ function createObstacle() {
         y: canvas.height - obstacleHeight,
         width: obstacleWidth,
         height: obstacleHeight,
-        speed: 5,
+        speed: 7 + score * 0.05, // スコアに応じて速度アップ
         draw: function() {
             ctx.fillStyle = 'red';
             ctx.fillRect(this.x, this.y, this.width, this.height);
